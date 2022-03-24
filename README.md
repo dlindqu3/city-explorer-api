@@ -3,6 +3,12 @@
 **Author**: Dwight Lindquist
 **Version**: 1.0.0 
 
+Web Request-Response Cycle 
+![wrrc image here](./static/wrrc-lab-9.png)
+
+- if the client makes a call to the locationIQ API, the request and response do not go through the server
+- if the client makes a call to the movies or weather APIs, the request and response pass through the server first then on to the API endpoints before returning via the server to the client
+
 ## Overview
 <!-- Provide a high level overview of what this application is and why you are building it, beyond the fact that it's an assignment for this class. (i.e. What's your problem domain?) -->
 

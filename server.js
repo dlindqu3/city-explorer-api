@@ -6,11 +6,9 @@ console.log('Our first server');
 // In our servers, we have to use 'require' instead of import. Here we will list the requirements for server
 const express = require('express');
 require('dotenv').config();
+const axios = require('axios'); 
 const weatherData = require('./data/weather.json'); 
- console.log(weatherData); 
-// let data = require('./data/pets.json');
-
-// we must include cors if we want to share reessourcess over the web
+// we must include cors if we want to share resources over the web
 const cors = require('cors');
 const res = require('express/lib/response');
 
@@ -29,45 +27,59 @@ const PORT = process.env.PORT || 3002;
 // app.get() correlates to axios.get
 app.get('/', (request, response) => {
   response.send('hello, from our server!');
-  console.log(weatherData);
+  // console.log(weatherData);
 });
 
-app.get('/weather-data', (request, response) => {
-  let searchQuery = request.query; 
-  console.log(searchQuery); 
-  // console.log(searchQuery); 
-  let requestedCity = weatherData.find(city => city.city_name.toLowerCase() === searchQuery.name.toLowerCase()); 
-  // response.send(requestedCity); 
-  // response.send(requestedCity.city_name); 
-  // console.log(requestedCity); 
 
-  console.log('requestedCity: ', requestedCity);
+//here, weather is the endpoint 
+app.get('/weather', async (request, response) => {
+  // let searchQuery = request.query; 
+  let lat = request.query.lat;
+  //atl lat: 33.749
+  let lon = request.query.lon; 
+  //atl lon: -84.38798 
 
-  //requestedCity.data is an array 
-  //requestedCity.data[0]
+  let url = `https://api.weatherbit.io/v2.0/forecast/daily?lat=${lat}&lon=${lon}&key=${process.env.WEATHER_API_KEY}`
 
-  // let newForecastObj = new Forecast(requestedCity);
+  let queryData = await axios.get(url);
 
-  let dailyForecasts = requestedCity.data.map((currentDay) =>{
-    return new Forecast(currentDay); 
-  })
+  //the first data is for the axios request, the second is nested within response
+  let cityWeatherArray = queryData.data.data.map((day) =>{
+    return new Forecast(day);
+  });
+  // console.log(cityWeatherArray); 
 
-  response.send(dailyForecasts); 
-  // response.send(newForecastObj); 
+  response.send(cityWeatherArray); 
 })
 
-//Class - Forecast 
-class Forecast {
-  constructor(dailyObj) {
-    this.date = dailyObj.valid_date;
-    this.description= dailyObj.weather.description;
+
+app.get('/movies', async (request, response) => {
+  let cityName = request.query.cityName; 
+  let url3 = `https://api.themoviedb.org/3/search/movie?query=${cityName}&api_key=${process.env.MOVIE_API_KEY}`;
+  console.log(url3); 
+  let moviesQueryData = await axios.get(url3); 
+
+  let cityMovie = moviesQueryData.data.results.map((film) =>{
+    return new Movie(film);
+  });
+  response.send(cityMovie); 
+})
+
+
+class Movie {
+  constructor (obj){
+    this.title = obj.title; 
   }
 }
 
-// final view on screen: [{date: date1, description:description1}, {date: date2, description:description2}, {date: date3, description:description3}]
-// [{"date":"2021-04-20","description":"Broken clouds"}]
 
-
+//Class - Forecast 
+class Forecast {
+  constructor(Obj) {
+    this.date = Obj.valid_date;
+    this.description= Obj.weather.description;
+  }
+}
 
 
 // LISTEN
